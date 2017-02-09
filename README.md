@@ -1,8 +1,14 @@
-## generator-5000
+# contributor-5000
 
 Ever felt like your github profile didn't reflect the true contributions you bring to the table? This tool is for you.
 
-`yarn start -- --repository /path/to/some/dummy/repo`
+## Install
+
+`npm install -g contributor-5000`
+
+## Usage
+
+`contributor-5000 --repository /path/to/some/dummy/repo`
 
 ## Options
 
