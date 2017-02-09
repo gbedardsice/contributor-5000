@@ -60,7 +60,7 @@ const days = end.diff(start, 'days');
 const bar = new ProgressBar('committing [:bar] :percent :etas', {
 	complete: '=',
 	incomplete: ' ',
-	width: 20,
+	width: 80,
 	total: days
 });
 
@@ -70,4 +70,6 @@ for (const i of Array.from(Array(days).keys())) {
 	bar.tick();
 }
 
-// git('push');
+git('push');
+
+shell.echo('Success, your contribution graph is now populated!');
