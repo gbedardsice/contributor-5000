@@ -1,0 +1,23 @@
+{
+  "name": "contributor-5000",
+  "version": "0.0.0",
+  "description": "Ever felt like your github profile did not reflect the true contributions you bring to the table? This tool is for you.",
+  "main": "index.js",
+  "repository": {},
+  "author": "gbedardsice",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.9.0"
+  },
+  "scripts": {
+    "start": "nodemon src/index.js --exec babel-node"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.22.2",
+    "babel-plugin-transform-runtime": "^6.22.0",
+    "babel-preset-es2015": "^6.22.0",
+    "babel-preset-stage-2": "^6.22.0",
+    "babel-register": "^6.22.0",
+    "nodemon": "^1.11.0"
+  }
+}
