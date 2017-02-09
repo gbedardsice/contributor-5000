@@ -14,7 +14,7 @@
     "uuid": "^3.0.1"
   },
   "bin": {
-    "generator-5000": "./dist/index.js"
+    "contributor-5000": "./dist/index.js"
   },
   "scripts": {
     "start": "babel-node src/index.js",
