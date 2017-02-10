@@ -3,6 +3,10 @@ import moment from 'moment';
 import shell from 'shelljs';
 import uuid from 'uuid/v4';
 import ProgressBar from 'progress';
+import fetch from 'node-fetch';
+
+import fs from 'fs';
+import path from 'path';
 
 const exitWithMessage = message => {
 	shell.echo(message);
@@ -16,26 +20,34 @@ const parseDate = val => {
 };
 
 const git = (command, ...args) => {
-	if (shell.exec(`git ${command}`, ...args).code !== 0) {
-		exitWithMessage(`Command "git ${command}" failed`);
+	const { code, stdout } = shell.exec(`git ${command}`, ...args);
+	if (code !== 0) {
+		exitWithMessage(`Command "git ${command}" failed with message ${stdout}`);
 	}
 };
 
 const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
-const commit = (date, times) => {
-	for (const i of Array.from(Array(times).keys())) {
-		const name = uuid();
-		shell.touch(`${name}`);
-		git(`add ${name}`);
-		git(`commit -m "Add ${name}" --date=${date.unix()}`, { silent: true });
-	}
-}
+const range = n => Array.from(Array(n).keys());
+
+const commit = (date, times, path) => (
+	range(times).reduce(promise => (
+		promise
+			.then(() => fetch('http://whatthecommit.com/index.txt'))
+			.then(res => res.text())
+			.then(message => {
+				fs.appendFileSync(path, `${uuid()}\n`);
+				git('add data.txt');
+				git(`commit -m "${message}" --date=${date.unix()}`, { silent: true });
+			})
+	), Promise.resolve())
+);
 
 commander
-	.option('-r --repository <path>', 'Git repository to commit into')
-	.option('-s --start <d>', 'The start date you want to start commit at', parseDate, moment().subtract(1, 'years'))
-	.option('-e --end <d>', 'The end date you want to stop commits at', parseDate, moment())
+	.option('-r, --repository <path>', 'Git repository to commit into')
+	.option('-s, --start <d>', 'The start date you want to start commit at', parseDate, moment().subtract(1, 'years'))
+	.option('-e, --end <d>', 'The end date you want to stop commits at', parseDate, moment())
+	.option('-np, --no-push', 'Do not immediately push the newly added commits')
 	.parse(process.argv);
 
 if (commander.repository) {
@@ -64,12 +76,25 @@ const bar = new ProgressBar('committing [:bar] :percent :etas', {
 	total: days
 });
 
-for (const i of Array.from(Array(days).keys())) {
-	const mom = moment(start).add(i, 'days');
-	commit(mom, random(1, 8));
-	bar.tick();
+const file = path.join(commander.repository, 'data.txt');
+if (!fs.existsSync(file)) {
+	fs.writeFileSync(file, '');
 }
 
-git('push');
-
-shell.echo('Success, your contribution graph is now populated!');
+range(days)
+	.reduce((promise, i) => (
+		promise
+			.then(() => {
+				const mom = moment(start).add(i, 'days');
+				return commit(mom, random(1, 8), file);
+			})
+			.then(() => bar.tick())
+	), Promise.resolve())
+	.then(() => {
+		if (!commander.noPush) {
+			git('push');
+			shell.echo('Success, your contribution graph is now populated!');
+		} else {
+			shell.echo('Added a bunch of commits to your repository!');
+		}
+	});
